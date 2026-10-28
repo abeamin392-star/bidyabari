@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>বিদ্যাবাড়ি টিউশন সেন্টার - Bidyabari Tuition Center</title>
+    <!-- গ্রাফ বা চার্ট তৈরির জন্য প্রয়োজনীয় ফ্রি লাইব্রেরি -->
+    <script src="https://jsdelivr.net"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #f4f6f9; color: #333; line-height: 1.6; }
+        header { background: linear-gradient(135deg, #0f2027, #203a43, #2c5364); color: white; padding: 40px 20px; text-align: center; }
+        header h1 { font-size: 2.5rem; margin-bottom: 10px; }
+        .container { max-width: 1000px; margin: 30px auto; padding: 0 20px; }
+        .section { background: white; padding: 25px; margin-bottom: 25px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        h2 { color: #203a43; border-bottom: 2px solid #2c5364; padding-bottom: 8px; margin-bottom: 15px; }
+        .notice-item { background: #eef2f7; padding: 12px; margin-bottom: 10px; border-left: 5px solid #2c5364; border-radius: 4px; }
+        .date { font-weight: bold; color: #666; font-size: 0.9rem; }
+        .search-box, .attendance-box { display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap; }
+        input[type="text"], input[type="number"], textarea, select { padding: 12px; border: 1px solid #ccc; border-radius: 4px; flex: 1; min-width: 150px; }
+        button { background: #2c5364; color: white; border: none; padding: 12px 20px; cursor: pointer; border-radius: 4px; font-weight: bold; }
+        button:hover { background: #203a43; }
+        #resultDisplay { margin-top: 15px; font-weight: bold; color: #2e7d32; }
+        .comment { background: #f9f9f9; padding: 10px; border: 1px solid #eee; margin-top: 10px; border-radius: 4px; }
+        .chart-container { position: relative; height: 300px; width: 100%; max-width: 400px; margin: 20px auto; }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>বিদ্যাবাড়ি টিউশন সেন্টার</h1>
+    <p>শিক্ষা যেখানে আনন্দময় ও সফল</p>
+</header>
+
+<div class="container">
+    <!-- ১. নোটিশ বোর্ড -->
+    <div class="section">
+        <h2>📢 আজকের নোটিশ বোর্ড</h2>
+        <div class="notice-item">
+            <span class="date">২৮ অক্টোবর, ২০২৬</span>
+            <p>আগামীকাল বিকেল ৪টায় দশম শ্রেণীর গণিত বিশেষ মডেল টেস্ট অনুষ্ঠিত হবে। সবার উপস্থিতি বাধ্যতামূলক।</p>
+        </div>
+    </div>
+
+    <!-- ২. উপস্থিত ও অনুপস্থিত ট্র্যাকিং গ্রাফ (নতুন যুক্ত) -->
+    <div class="section">
+        <h2>📊 আজকের হাজিরা ও উপস্থিতি গ্রাফ</h2>
+        <p>১০০ জন শিক্ষার্থীর মধ্যে আজকের উপস্থিতি ইনপুট দিন (শিক্ষক বা অ্যাডমিনের জন্য):</p>
+        <div class="attendance-box">
+            <input type="number" id="presentInput" placeholder="উপস্থিত সংখ্যা (উদা: ৮৫)" min="0" max="100">
+            <button onclick="updateAttendance()">গ্রাফ আপডেট করুন</button>
+        </div>
+        
+        <!-- গ্রাফ দেখানোর জায়গা -->
+        <div class="chart-container">
+            <canvas id="attendanceChart"></canvas>
+        </div>
+    </div>
+
+    <!-- ৩. ফলাফল সার্চ -->
+    <div class="section">
+        <h2>🏆 পরীক্ষার ফলাফল অনুসন্ধান</h2>
+        <div class="search-box">
+            <input type="text" id="rollInput" placeholder="রোল নম্বর লিখুন (১০১, ১০২)">
+            <button onclick="checkResult()">খুঁজুন</button>
+        </div>
+        <div id="resultDisplay"></div>
+    </div>
+
+    <!-- ৪. অভিভাবক ও শিক্ষার্থীর মন্তব্য -->
+    <div class="section">
+        <h2>💬 অভিভাবক ও শিক্ষার্থীর মতামত বক্স</h2>
+        <form id="feedbackForm" onsubmit="submitComment(event)">
+            <input type="text" id="visitorName" placeholder="আপনার নাম" required style="width: 100%; margin-bottom: 10px;">
+            <select id="visitorType" style="width: 100%; margin-bottom: 10px;">
+                <option value="অভিভাবক">আমি একজন অভিভাবক</option>
+                <option value="শিক্ষার্থী">আমি একজন শিক্ষার্থী</option>
+            </select>
+            <textarea id="visitorMessage" rows="4" placeholder="আপনার মন্তব্য লিখুন..." required style="width: 100%; margin-bottom: 10px;"></textarea>
+            <button type="submit">মন্তব্য জমা দিন</button>
+        </form>
+        <div id="commentSection" style="margin-top: 20px;">
+            <h3>সাম্প্রতিক মন্তব্যসমূহ:</h3>
+            <div class="comment"><strong>রহমান আলী (অভিভাবক):</strong> গ্রাফের মাধ্যমে প্রতিদিনের হাজিরা দেখার সিস্টেমটি খুব ভালো লেগেছে।</div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ডেমো রেজাল্ট ডাটা
+    const resultData = {
+        "101": "নাম: আবির হোসেন | প্রাপ্ত নম্বর: ৮৫% (A+)",
+        "102": "নাম: ফাতেমা আক্তার | প্রাপ্ত নম্বর: ৭৮% (A)"
+    };
+
+    function checkResult() {
+        const roll = document.getElementById('rollInput').value.trim();
+        const display = document.getElementById('resultDisplay');
+        if(resultData[roll]) {
+            display.innerHTML = resultData[roll];
+            display.style.color = "#2e7d32";
+        } else {
+            display.innerHTML = "দুঃখিত! এই রোল নম্বরের কোনো ফলাফল পাওয়া যায়নি।";
+            display.style.color = "#c62828";
+        }
+    }
+
+    // গ্রাফ ও চার্ট স্ক্রিপ্ট (Chart.js)
+    let ctx = document.getElementById('attendanceChart').getContext('2d');
+    let attendanceChart = new Chart(ctx, {
+        type: 'pie', // পাই চার্ট (গোল গ্রাফ)
+        data: {
+            labels: ['উপস্থিত (Present)', ['অনুপস্থিত (Absent)']],
+            datasets: [{
+                data:, // শুরুতে ডেমো ৮০ জন উপস্থিত, ২০ জন অনুপস্থিত
+                backgroundColor: ['#2e7d32', '#c62828'],
+                borderWidth: 1
+            }]
+        },
+        options: { responsive: true, maintainAspectRatio: false }
+    });
+
+    // উপস্থিতি ইনপুট দিলে গ্রাফ পরিবর্তন করার ফাংশন
+    function updateAttendance() {
+        let present = parseInt(document.getElementById('presentInput').value);
+        if (isNaN(present) || present < 0 || present > 100) {
+            alert("অনুগ্রহ করে ০ থেকে ১০০ এর মধ্যে সঠিক সংখ্যা দিন।");
+            return;
+        }
+        let absent = 100 - present; // ১০০ জন শিক্ষার্থীর ওপর ভিত্তি করে হিসাব
+        
+        // চার্টের ডাটা আপডেট
+        attendanceChart.data.datasets[0].data = [present, absent];
+        attendanceChart.update();
+    }
+
+    function submitComment(e) {
+        e.preventDefault();
+        const name = document.getElementById('visitorName').value;
+        const type = document.getElementById('visitorType').value;
+        const msg = document.getElementById('visitorMessage').value;
+        
+        const commentDiv = document.createElement('div');
+        commentDiv.className = 'comment';
+        commentDiv.innerHTML = `<strong>${name} (${type}):</strong> ${msg}`;
+        
+        document.getElementById('commentSection').appendChild(commentDiv);
+        document.getElementById('feedbackForm').reset();
+    }
+</script>
+
+</body>
+</html>
